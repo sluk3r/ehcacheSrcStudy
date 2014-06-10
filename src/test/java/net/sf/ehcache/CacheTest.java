@@ -135,6 +135,25 @@ public class CacheTest extends AbstractCacheTest {
 
 
     @Test
+    public void testChangeInplace() {
+        Cache newCache = new Cache("testChangeInplace", 0, true, false, 0, 0);
+        manager.addCache(newCache);
+
+
+        long currentTime = System.currentTimeMillis();
+        SlowDeserializer testData = new SlowDeserializer(String.valueOf(currentTime));
+
+        Element ele = new Element("key", testData);
+        newCache.put(ele);
+
+        SlowDeserializer fetechData = (SlowDeserializer) newCache.get("key").getObjectValue();
+
+        assertEquals(testData, fetechData);
+        assertTrue(testData == fetechData);//wangxc, 并没有Clone一份， 而是直接持有实例的引用。
+    }
+
+
+    @Test
     public void testSomeInstanceCache() {
         Cache newCache = new Cache("testSomeInstance", 0, true, false, 0, 0);
         manager.addCache(newCache);
