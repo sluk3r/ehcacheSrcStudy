@@ -47,13 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import junit.framework.Assert;
@@ -137,6 +131,62 @@ public class CacheTest extends AbstractCacheTest {
         Cache cache = new Cache("test4", 1000, true, true, 0, 0);
         manager.addCache(cache);
         return cache;
+    }
+
+
+    @Test
+    public void testSomeInstanceCache() {
+        Cache newCache = new Cache("testSomeInstance", 0, true, false, 0, 0);
+        manager.addCache(newCache);
+
+        Cache fetchedCache1 = manager.getCache("testSomeInstance");
+        Cache fetchedCache2 = manager.getCache("testSomeInstance");
+
+        assertTrue(fetchedCache1 == fetchedCache2);
+
+
+        Callable<Cache> cacheCallable1 = new Callable<Cache>() {
+            @Override
+            public Cache call() throws Exception {
+                return manager.getCache("testSomeInstance");
+            }
+        };
+
+        Callable<Cache> cacheCallable2 = new Callable<Cache>() {
+            @Override
+            public Cache call() throws Exception {
+                return manager.getCache("testSomeInstance");
+            }
+        };
+
+        //create the object of FutureTask
+        FutureTask<Cache> task1 = new FutureTask<Cache>(cacheCallable1);
+        FutureTask<Cache> task2 = new FutureTask<Cache>(cacheCallable2);
+
+        ArrayList<Future<Cache>> results = new ArrayList<Future<Cache>>();
+        results.add(task1);
+        results.add(task2);
+
+        Thread t1 = new Thread(task1);
+        Thread t2 = new Thread(task2);
+
+        t1.start();
+        t2.start();
+
+        try {
+            Cache fetechedFromThread1 = task1.get();
+            Cache fetechedFromThread2 = task1.get();
+
+            assertTrue(fetechedFromThread1 == fetechedFromThread2);
+
+            assertTrue(fetechedFromThread1 == fetchedCache1);
+        } catch (InterruptedException e){
+
+        } catch (ExecutionException ex) {
+
+        }
+
+
     }
 
 
