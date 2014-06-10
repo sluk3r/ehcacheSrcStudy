@@ -61,7 +61,7 @@ public class ExplicitLockApiTest extends TestCase {
     private void explicitApiTest(Cache cache) throws Exception {
         debug("Explicit API Test");
         String key = "key";
-        CyclicBarrier barrier = new CyclicBarrier(3);
+        CyclicBarrier barrier = new CyclicBarrier(3); //wangxc 前两天刚看到关于这个类的介绍，现在就看到实例例子啦， 幸会幸会。
         final Reader reader = new Reader(barrier, cache, key);
         final Writer writer = new Writer(barrier, cache, key);
 
@@ -83,7 +83,7 @@ public class ExplicitLockApiTest extends TestCase {
         t1.start();
         t2.start();
 
-        barrier.await();
+        barrier.await();//wangxc 使用barrier的典型情况是怎样的？
 
         // acquire write lock
         debug("Signalling writer to acquire write lock");
@@ -153,7 +153,7 @@ public class ExplicitLockApiTest extends TestCase {
 
         assertTrue(reader.finished);
         assertTrue(writer.finished);
-        assertNull(reader.error);
+        assertNull(reader.error);//wangxc 这种测试异常的方法倒是也不错。
         assertNull(writer.error);
 
         debug("Explicit API Test Done");
@@ -184,6 +184,7 @@ public class ExplicitLockApiTest extends TestCase {
             debug("Last signal[" + name + "]  processed");
         }
 
+        //wangxc 是不是可以用现成的什么框架来实现这个功能？而不是用这里的while
         protected void waitUntilSignalled() throws InterruptedException {
             while (!signalReceived) {
                 synchronized (this) {
@@ -197,7 +198,7 @@ public class ExplicitLockApiTest extends TestCase {
             synchronized (this) {
                 signalReceived = true;
                 signalProcessed = false;
-                this.notifyAll();
+                this.notifyAll();//wangxc 倒是可以顺便研究下， 这个wait和notifyAll的组合使用。
             }
         }
 
@@ -276,7 +277,7 @@ public class ExplicitLockApiTest extends TestCase {
                 barrier.await();
 
                 waitUntilSignalled();
-                cache.acquireWriteLockOnKey(key);
+                cache.acquireWriteLockOnKey(key);//wangxc 这个lock也只是单个key的， 而没有像数据库那样提供事务支持。
                 writeLockAcquired = true;
                 debug("Write Lock Acquired");
                 markSignalProcessed();
@@ -307,3 +308,11 @@ public class ExplicitLockApiTest extends TestCase {
     }
 
 }
+
+
+/*
+三个问题：
+1， CyclicBarrier的使用: 因为该 barrier 在释放等待线程后可以重用，所以称它为循环 的 barrier。
+2， 问题的整体认识：也就Cache基于Key的Lock。
+3， SignalRunnable里的相关协调： 那么多的boolean类型的状态标识、wait/nofity相关、run方法里的实现。
+*/
