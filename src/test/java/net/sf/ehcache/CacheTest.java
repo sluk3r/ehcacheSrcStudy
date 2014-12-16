@@ -288,7 +288,7 @@ public class CacheTest extends AbstractCacheTest {
         assertCachePoolSize(MemoryUnit.MEGABYTES.toBytes(10), cacheManager.getCache("one"));
         try {
             cacheManager.getCache("one").getCacheConfiguration().maxBytesLocalHeap(5, MemoryUnit.MEGABYTES);
-            fail();//wangxc， switch体现在哪？ Pool在哪？
+            fail();//wangxc， switch体现在哪？ Pool在哪？ 2014-06-12 13:46:20 这个Pool应该就是上面修改的Heap？
         } catch (IllegalStateException e) {
             assertCachePoolSize(MemoryUnit.MEGABYTES.toBytes(10), cacheManager.getCache("one"));
         }
@@ -335,7 +335,7 @@ public class CacheTest extends AbstractCacheTest {
         manager.addCache(new Cache(new CacheConfiguration().name("noLimit").maxEntriesLocalHeap(0)));
     }
 
-    @Test
+    @Test //wangxc， 这个动态的调整有什么用？
     public void testAdjustsPoolSizeDynamically() throws Exception {
         Configuration configuration = new Configuration();
         CacheManager cacheManager = new CacheManager(configuration.maxBytesLocalHeap(10, MemoryUnit.MEGABYTES).name("new-cacheManager"));
